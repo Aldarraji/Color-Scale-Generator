@@ -8,3 +8,5 @@ Enter one or more valid hex colors (comma-separated) in the "Colors" input below
 
 ### Example: 
 If you type #1C3564, you'll see that Primary-50 is #E8EBF0, Primary-100 is #D2D7E0, and so on, matching exactly the shades needed.
+
+(/workspaces/Color-Scale-Generator/Screenshot 2025-02-13 161542.png) 
