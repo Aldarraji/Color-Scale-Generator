@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Color Scale Generator</title>
+
+    <!-- tinycolor2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/tinycolor2@1.4.2/dist/tinycolor-min.js"></script>
+
+    <style>
+      /* Overall page styling */
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f3f4f6;
+        color: #333;
+        transition: background 0.3s, color 0.3s;
+      }
+
+      /* Dark Theme Class */
+      body.dark {
+        background: #1c1c1c;
+        color: #e2e2e2;
+      }
+
+      .container {
+        /* Make it wider */
+        max-width: 1100px;
+        margin: 2rem auto;
+        background: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        transition: background 0.3s, color 0.3s;
+      }
+
+      body.dark .container {
+        background: #2a2a2a;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      }
+
+      /* Top bar for heading + toggle switch */
+      .top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.75rem;
+      }
+
+      /* Toggle switch container */
+      .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      /* Switch styling */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: #4f46e5;
+      }
+
+      input:focus + .slider {
+        box-shadow: 0 0 1px #4f46e5;
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(24px);
+      }
+
+      /* Documentation styling */
+      .documentation {
+        background: #f9fafb;
+        border: 1px solid #eee;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        transition: background 0.3s, color 0.3s;
+      }
+
+      body.dark .documentation {
+        background: #3b3b3b;
+        border-color: #555;
+      }
+
+      .documentation h2 {
+        margin-top: 0;
+        font-size: 1.25rem;
+      }
+      .documentation p {
+        margin: 0.5rem 0;
+      }
+
+      /* Form styling */
+      .form-group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        gap: 0.5rem;
+      }
+      .form-group label {
+        margin-right: 0.5rem;
+        font-weight: bold;
+      }
+      #baseColors {
+        flex: 1 1 auto;
+        max-width: 300px;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        transition: background 0.3s, color 0.3s;
+      }
+      body.dark #baseColors {
+        background: #444;
+        color: #fff;
+        border-color: #666;
+      }
+
+      .btn {
+        margin-left: 0.5rem;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background: #4f46e5;
+        color: #fff;
+        font-size: 1rem;
+        transition: background 0.2s;
+      }
+      .btn:hover {
+        background: #4338ca;
+      }
+
+      .info {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 1rem;
+      }
+
+      body.dark .info {
+        color: #aaa;
+      }
+
+      /* Scale output styling */
+      #scaleOutput {
+        margin-top: 1rem;
+      }
+
+      .color-scale {
+        margin-bottom: 2rem;
+      }
+      .color-scale h2 {
+        margin: 1rem 0 0.5rem;
+        font-size: 1.25rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.5rem;
+        transition: color 0.3s;
+      }
+      body.dark .color-scale h2 {
+        border-bottom-color: #555;
+      }
+
+      /* Swatch grid + styling */
+      .swatch-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .swatch {
+        flex: 0 0 auto;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.25rem;
+        position: relative;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .swatch:hover {
+        transform: scale(1.04);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+
+      .label {
+        font-size: 0.75rem;
+        line-height: 1.2;
+        text-align: center;
+        color: #fff;
+        text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+      }
+
+      /* Copied tooltip or alert styling (we'll keep it simple) */
+      .copied {
+        position: absolute;
+        top: -1.5rem;
+        background: rgba(0,0,0,0.7);
+        color: #fff;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(10px);
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .swatch.show-copied .copied {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Top bar: Title + Dark Mode Switch -->
+      <div class="top-bar">
+        <h1>Color Scale Generator (50 → 950)</h1>
+        <div class="toggle-container">
+          <label class="switch">
+            <input type="checkbox" id="themeSwitch" onchange="toggleThemeSwitch()" />
+            <span class="slider"></span>
+          </label>
+          <span>Dark Mode</span>
+        </div>
+      </div>
+
+      <div class="documentation">
+        <h2>Documentation</h2>
+        <p><strong>What it does:</strong> This tool takes one or more hex colors, then generates a series of tints and shades labeled from <em>50</em> (lightest) to <em>950</em> (darkest). For each step, the base color is mixed with white or black in specific ratios, ensuring a consistent distribution.</p>
+        <p><strong>How to use it:</strong> Enter one or more valid hex colors (comma-separated) in the "Colors" input below, then click the <em>Generate Scales</em> button. Each color will produce a palette of 11 swatches. Click on any swatch to copy its hex code.</p>
+        <p><strong>Example:</strong> If you type <code>#1C3564</code>, you&apos;ll see that <em>Primary-50</em> is <code>#E8EBF0</code>, <em>Primary-100</em> is <code>#D2D7E0</code>, and so on, matching exactly the shades needed.</p>
+      </div>
+
+      <div class="info">Enter comma-separated hex colors and click Generate. Click a swatch to copy its hex!</div>
+      <div class="form-group">
+        <label for="baseColors">Colors:</label>
+        <input
+          type="text"
+          id="baseColors"
+          value="#1C3564, #FF0000"
+        />
+        <button class="btn" onclick="generateScales()">Generate Scales</button>
+      </div>
+
+      <div id="scaleOutput"></div>
+    </div>
+
+    <script>
+      // Steps array for each label.
+      // For 50..400, we mix with WHITE at decreasing fractions.
+      // For 500, we use the base color as-is.
+      // For 600..950, we mix with BLACK at increasing fractions.
+      // The fraction is the % of white or black; e.g. 0.9 => 90% white.
+      const CUSTOM_STEPS = [
+        { label: 50,  whiteFrac: 0.9 },
+        { label: 100, whiteFrac: 0.8 },
+        { label: 200, whiteFrac: 0.6 },
+        { label: 300, whiteFrac: 0.4 },
+        { label: 400, whiteFrac: 0.2 },
+        { label: 500, base: true },
+        { label: 600, blackFrac: 0.2 },
+        { label: 700, blackFrac: 0.4 },
+        { label: 800, blackFrac: 0.6 },
+        { label: 900, blackFrac: 0.8 },
+        { label: 950, blackFrac: 0.9 },
+      ];
+
+      // A small helper that manually mixes two colors in RGB space
+      // using a fraction for color2.
+      // fraction2 = 0.9 means 90% color2 + 10% color1.
+      function mixManual(color1, color2, fraction2) {
+        const c1 = tinycolor(color1).toRgb();
+        const c2 = tinycolor(color2).toRgb();
+        const r = Math.round(c1.r * (1 - fraction2) + c2.r * fraction2);
+        const g = Math.round(c1.g * (1 - fraction2) + c2.g * fraction2);
+        const b = Math.round(c1.b * (1 - fraction2) + c2.b * fraction2);
+        return tinycolor({ r, g, b });
+      }
+
+      function generateScaleForColor(baseHex) {
+        // Create container for this color scale
+        const scaleContainer = document.createElement('div');
+        scaleContainer.className = 'color-scale';
+
+        // Heading
+        const heading = document.createElement('h2');
+        heading.textContent = `Scale for ${baseHex.toUpperCase()}`;
+        scaleContainer.appendChild(heading);
+
+        // Swatches in a grid
+        const swatchGrid = document.createElement('div');
+        swatchGrid.className = 'swatch-grid';
+        scaleContainer.appendChild(swatchGrid);
+
+        CUSTOM_STEPS.forEach(step => {
+          let finalColor;
+
+          if (step.base) {
+            // 500 => base color exactly
+            finalColor = tinycolor(baseHex);
+          } else if (step.whiteFrac !== undefined) {
+            // Mix with white
+            finalColor = mixManual(baseHex, '#fff', step.whiteFrac);
+          } else if (step.blackFrac !== undefined) {
+            // Mix with black
+            finalColor = mixManual(baseHex, '#000', step.blackFrac);
+          }
+
+          const hexValue = finalColor.toHexString().toUpperCase();
+
+          // Create swatch
+          const swatchDiv = document.createElement('div');
+          swatchDiv.className = 'swatch';
+          swatchDiv.style.backgroundColor = hexValue;
+
+          // Create a tooltip-like element
+          const copiedMsg = document.createElement('div');
+          copiedMsg.className = 'copied';
+          copiedMsg.textContent = 'Copied!';
+          swatchDiv.appendChild(copiedMsg);
+
+          // Label inside
+          const labelDiv = document.createElement('div');
+          labelDiv.className = 'label';
+          labelDiv.innerHTML = `Primary-${step.label}<br/>${hexValue}`;
+          swatchDiv.appendChild(labelDiv);
+
+          // Click to copy
+          swatchDiv.addEventListener('click', () => {
+            navigator.clipboard.writeText(hexValue).then(() => {
+              // Show the "Copied!" tooltip
+              swatchDiv.classList.add('show-copied');
+              setTimeout(() => {
+                swatchDiv.classList.remove('show-copied');
+              }, 1000);
+            });
+          });
+
+          swatchGrid.appendChild(swatchDiv);
+        });
+
+        return scaleContainer;
+      }
+
+      function generateScales() {
+        const input = document.getElementById('baseColors').value;
+        const colorArray = input.split(',').map(c => c.trim()).filter(Boolean);
+        const scaleOutput = document.getElementById('scaleOutput');
+        scaleOutput.innerHTML = '';
+
+        colorArray.forEach(colorHex => {
+          if (tinycolor(colorHex).isValid()) {
+            const scaleContainer = generateScaleForColor(colorHex);
+            scaleOutput.appendChild(scaleContainer);
+          } else {
+            const errorDiv = document.createElement('div');
+            errorDiv.textContent = `Invalid color: "${colorHex}"`;
+            errorDiv.style.color = 'red';
+            scaleOutput.appendChild(errorDiv);
+          }
+        });
+      }
+
+      // Toggle Dark Theme via Switch
+      function toggleThemeSwitch() {
+        document.body.classList.toggle('dark');
+      }
+    </script>
+  </body>
+</html>
+
+<!-- Created by Aram Aldarraji -->
